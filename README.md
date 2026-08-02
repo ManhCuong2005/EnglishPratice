@@ -75,3 +75,25 @@ Khi deploy Vercel:
 5. Redeploy sau khi thêm biến môi trường.
 
 Luôn gửi domain production cố định cho người dùng. Preview URL hoặc custom domain khác sẽ có IndexedDB riêng.
+
+## Deploy GitHub Pages
+
+Dự án đã có workflow `.github/workflows/deploy.yml` và `base` trong Vite được đặt theo repository `EnglishPratice`. Website dự kiến chạy tại:
+
+`https://manhcuong2005.github.io/EnglishPratice/`
+
+1. Push mã nguồn lên nhánh `main` của repository `ManhCuong2005/EnglishPratice`.
+2. Mở repository trên GitHub, vào **Settings → Pages**.
+3. Trong **Build and deployment → Source**, chọn **GitHub Actions**. Không chọn “Deploy from a branch”, vì nhánh `main` chứa mã nguồn Vite chưa build.
+4. Mở tab **Actions**, chọn workflow **Deploy Vite site to GitHub Pages** và chờ cả hai job `build` và `deploy` hoàn tất.
+
+Để website có sẵn Gemini API key khi build:
+
+1. Vào **Settings → Secrets and variables → Actions → Secrets**.
+2. Tạo repository secret tên `VITE_GEMINI_API_KEY` và dán API key Gemini vào đó.
+3. Không bắt buộc: trong tab **Variables**, tạo `VITE_GEMINI_MODEL` nếu muốn dùng model khác `gemini-2.5-flash`.
+4. Chạy lại workflow hoặc push một commit mới.
+
+Secret không xuất hiện trong mã nguồn GitHub, nhưng vì đây là website frontend thuần nên API key vẫn được đóng vào file JavaScript sau khi build và người truy cập có kiến thức kỹ thuật vẫn có thể xem được. Nếu không tạo secret, mỗi người dùng có thể nhập key riêng tại **Cài đặt → Kết nối Gemini**; key đó chỉ được lưu trong IndexedDB trên trình duyệt của họ.
+
+Dữ liệu trên GitHub Pages có kho IndexedDB riêng, không tự chuyển từ localhost hoặc Vercel. Hãy dùng **Cài đặt → Xuất dữ liệu** ở địa chỉ cũ rồi **Nhập dữ liệu** tại website GitHub Pages nếu muốn mang theo tiến độ.
