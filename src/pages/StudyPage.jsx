@@ -236,7 +236,7 @@ function MeaningListening({ words, onReview, onFinish, onEnrichEnglishMeanings, 
     setCorrect(0);
   };
 
-  const check = async () => {
+  const check = async (autoAdvance = false) => {
     if (!answer.trim() || checked !== null) return;
     const isCorrect = englishToVietnamese
       ? matchesMeaning(answer, word.meaning)
@@ -244,8 +244,10 @@ function MeaningListening({ words, onReview, onFinish, onEnrichEnglishMeanings, 
         ? matchesMeaning(answer, word.englishMeaning, true)
         : normalizeAnswer(answer) === normalizeAnswer(word.term);
     setChecked(isCorrect);
-    if (isCorrect) setCorrect((value) => value + 1);
+    const nextCorrect = correct + (isCorrect ? 1 : 0);
+    if (isCorrect) setCorrect(nextCorrect);
     await onReview(word.id, isCorrect ? 'good' : 'again');
+    if (isCorrect && autoAdvance) next(nextCorrect);
   };
 
   const skip = async () => {
@@ -260,8 +262,8 @@ function MeaningListening({ words, onReview, onFinish, onEnrichEnglishMeanings, 
     try { await onEnrichEnglishMeanings(setId); } finally { setEnriching(false); }
   };
 
-  const next = () => {
-    if (index >= questions.length - 1) onFinish(questions.length, correct);
+  const next = (nextCorrect = correct) => {
+    if (index >= questions.length - 1) onFinish(questions.length, nextCorrect);
     else {
       setIndex((value) => value + 1);
       setAnswer('');
@@ -285,7 +287,7 @@ function MeaningListening({ words, onReview, onFinish, onEnrichEnglishMeanings, 
         <p>Hệ thống đã đọc. Hãy nghe và nhập câu trả lời của bạn.</p>
         <h2>{promptText}</h2>
         {missingEnglishMeaning && <div className="meaning-listen-missing"><span><AlertCircle size={16} /> Từ này chưa có định nghĩa tiếng Anh.</span><Button size="sm" variant="soft" icon={enriching ? RefreshCw : Sparkles} className={enriching ? 'is-loading' : ''} disabled={enriching} onClick={enrichDefinitions}>{enriching ? 'Đang tạo…' : 'Bổ sung bằng Gemini'}</Button></div>}
-        <div className={`meaning-listen-input ${checked === true ? 'correct' : checked === false || checked === 'skipped' ? 'wrong' : ''}`}><input ref={inputRef} autoFocus={!missingEnglishMeaning} value={answer} disabled={checked !== null || missingEnglishMeaning} onChange={(event) => setAnswer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') checked === null ? check() : next(); }} placeholder={englishToVietnamese ? 'Ví dụ: từ bỏ, ruồng bỏ' : englishToEnglish ? 'Ví dụ: to give up' : 'Ví dụ: abandon'} autoComplete="off" spellCheck="false" />{checked === true && <Check />}{(checked === false || checked === 'skipped') && <X />}</div>
+        <div className={`meaning-listen-input ${checked === true ? 'correct' : checked === false || checked === 'skipped' ? 'wrong' : ''}`}><input ref={inputRef} autoFocus={!missingEnglishMeaning} value={answer} disabled={checked !== null || missingEnglishMeaning} onChange={(event) => setAnswer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') checked === null ? check(true) : next(); }} placeholder={englishToVietnamese ? 'Ví dụ: từ bỏ, ruồng bỏ' : englishToEnglish ? 'Ví dụ: to give up' : 'Ví dụ: abandon'} autoComplete="off" spellCheck="false" />{checked === true && <Check />}{(checked === false || checked === 'skipped') && <X />}</div>
         {(checked === false || checked === 'skipped') && <p className="meaning-listen-correct-answer">{checked === 'skipped' ? 'Đáp án đúng: ' : 'Đáp án đúng: '}<strong>{expectedAnswer || 'Chưa có định nghĩa tiếng Anh'}</strong><button type="button" onClick={playPrompt}><Volume2 size={17} /></button></p>}
         {checked === true && <p className="meaning-listen-pass"><CheckCircle2 size={17} /> Chính xác — từ này đã được tính là pass.</p>}
         <div className="meaning-listen-actions">{checked === null && <Button variant="ghost" onClick={skip}>Bỏ qua</Button>}<Button onClick={checked === null ? check : next} disabled={checked === null && (!answer.trim() || missingEnglishMeaning)}>{checked === null ? 'Kiểm tra' : index === questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'}</Button></div>
