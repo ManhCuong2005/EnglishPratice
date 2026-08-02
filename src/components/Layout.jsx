@@ -4,6 +4,7 @@ import {
   Headphones,
   Home,
   Library,
+  ListChecks,
   Menu,
   Moon,
   Plus,
@@ -18,6 +19,7 @@ const navItems = [
   { id: "dashboard", label: "Tổng quan", icon: Home },
   { id: "library", label: "Bộ từ của tôi", icon: Library },
   { id: "listening", label: "Luyện nghe", icon: Headphones },
+  { id: "quiz", label: "Luyện trắc nghiệm", icon: ListChecks },
   { id: "import", label: "Tạo bộ từ", icon: Plus, accent: true },
   { id: "settings", label: "Cài đặt", icon: Settings },
 ];

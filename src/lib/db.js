@@ -1,5 +1,5 @@
 const DB_NAME = 'vocabloom-db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let databasePromise;
 
@@ -51,6 +51,12 @@ export function openDatabase() {
           lessons.createIndex('updatedAt', 'updatedAt');
           lessons.createIndex('createdAt', 'createdAt');
           lessons.createIndex('exam', 'exam');
+        }
+
+        if (!db.objectStoreNames.contains('quizSets')) {
+          const quizzes = db.createObjectStore('quizSets', { keyPath: 'id' });
+          quizzes.createIndex('updatedAt', 'updatedAt');
+          quizzes.createIndex('createdAt', 'createdAt');
         }
       };
 
@@ -133,6 +139,19 @@ export const db = {
     return withStore('listeningLessons', 'readwrite', (store) => requestToPromise(store.delete(id)));
   },
 
+  async getQuizSets() {
+    const result = await withStore('quizSets', 'readonly', (store) => requestToPromise(store.getAll()));
+    return result.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  },
+
+  putQuizSet(quizSet) {
+    return withStore('quizSets', 'readwrite', (store) => requestToPromise(store.put(quizSet)));
+  },
+
+  deleteQuizSet(id) {
+    return withStore('quizSets', 'readwrite', (store) => requestToPromise(store.delete(id)));
+  },
+
   async getSettings() {
     const rows = await withStore('settings', 'readonly', (store) => requestToPromise(store.getAll()));
     return Object.fromEntries(rows.map(({ key, value }) => [key, value]));
@@ -143,17 +162,18 @@ export const db = {
   },
 
   async exportAll() {
-    const [sets, sessions, settings, listeningLessons] = await Promise.all([
+    const [sets, sessions, settings, listeningLessons, quizSets] = await Promise.all([
       this.getSets(),
       this.getSessions(),
       this.getSettings(),
       this.getListeningLessons(),
+      this.getQuizSets(),
     ]);
     return {
       app: 'Vocabloom',
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
-      data: { sets, sessions, settings, listeningLessons },
+      data: { sets, sessions, settings, listeningLessons, quizSets },
     };
   },
 
@@ -163,33 +183,37 @@ export const db = {
     }
 
     const database = await openDatabase();
-    const tx = database.transaction(['sets', 'sessions', 'settings', 'listeningLessons'], 'readwrite');
+    const tx = database.transaction(['sets', 'sessions', 'settings', 'listeningLessons', 'quizSets'], 'readwrite');
     const setsStore = tx.objectStore('sets');
     const sessionsStore = tx.objectStore('sessions');
     const settingsStore = tx.objectStore('settings');
     const listeningStore = tx.objectStore('listeningLessons');
+    const quizStore = tx.objectStore('quizSets');
 
     if (replace) {
       setsStore.clear();
       sessionsStore.clear();
       settingsStore.clear();
       listeningStore.clear();
+      quizStore.clear();
     }
 
     backup.data.sets.forEach((item) => setsStore.put(item));
     (backup.data.sessions || []).forEach((item) => sessionsStore.put(item));
     (backup.data.listeningLessons || []).forEach((item) => listeningStore.put(item));
+    (backup.data.quizSets || []).forEach((item) => quizStore.put(item));
     Object.entries(backup.data.settings || {}).forEach(([key, value]) => settingsStore.put({ key, value }));
     await transactionDone(tx);
   },
 
   async clearAll() {
     const database = await openDatabase();
-    const tx = database.transaction(['sets', 'sessions', 'settings', 'listeningLessons'], 'readwrite');
+    const tx = database.transaction(['sets', 'sessions', 'settings', 'listeningLessons', 'quizSets'], 'readwrite');
     tx.objectStore('sets').clear();
     tx.objectStore('sessions').clear();
     tx.objectStore('settings').clear();
     tx.objectStore('listeningLessons').clear();
+    tx.objectStore('quizSets').clear();
     await transactionDone(tx);
   },
 };

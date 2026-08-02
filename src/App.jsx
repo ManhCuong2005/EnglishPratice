@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import ImportPage from './pages/ImportPage.jsx';
 import LibraryPage from './pages/LibraryPage.jsx';
 import ListeningPage from './pages/ListeningPage.jsx';
+import QuizPage from './pages/QuizPage.jsx';
 import SetDetail from './pages/SetDetail.jsx';
 import StudyPage from './pages/StudyPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
@@ -24,7 +25,7 @@ const defaultSettings = {
 function readRoute() {
   const value = window.location.hash.replace(/^#\/?/, '') || 'dashboard';
   const [page, id, mode] = value.split('/');
-  const validPages = ['dashboard', 'library', 'listening', 'import', 'settings', 'set', 'study'];
+  const validPages = ['dashboard', 'library', 'listening', 'quiz', 'import', 'settings', 'set', 'study'];
   return validPages.includes(page) ? { page, id, mode } : { page: 'dashboard' };
 }
 
@@ -35,6 +36,8 @@ export default function App() {
   const [sessions, setSessions] = useState([]);
   const [listeningLessons, setListeningLessons] = useState([]);
   const listeningLessonsRef = useRef([]);
+  const [quizSets, setQuizSets] = useState([]);
+  const quizSetsRef = useRef([]);
   const [settings, setSettings] = useState(defaultSettings);
   const [ready, setReady] = useState(false);
   const [toasts, setToasts] = useState([]);
@@ -55,8 +58,8 @@ export default function App() {
     let active = true;
     (async () => {
       try {
-        const [savedSets, savedSessions, savedSettings, savedListeningLessons] = await Promise.all([
-          db.getSets(), db.getSessions(), db.getSettings(), db.getListeningLessons(),
+        const [savedSets, savedSessions, savedSettings, savedListeningLessons, savedQuizSets] = await Promise.all([
+          db.getSets(), db.getSessions(), db.getSettings(), db.getListeningLessons(), db.getQuizSets(),
         ]);
         let initialSets = savedSets;
         if (!savedSettings.initialized && savedSets.length === 0) {
@@ -70,6 +73,8 @@ export default function App() {
         setSessions(savedSessions.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)));
         listeningLessonsRef.current = savedListeningLessons;
         setListeningLessons(savedListeningLessons);
+        quizSetsRef.current = savedQuizSets;
+        setQuizSets(savedQuizSets);
         setSettings({ ...defaultSettings, ...savedSettings });
       } catch (error) {
         if (active) addToast('Không mở được dữ liệu', error.message, 'error', 8000);
@@ -91,14 +96,16 @@ export default function App() {
   }, []);
 
   const refreshData = useCallback(async () => {
-    const [nextSets, nextSessions, nextSettings, nextListeningLessons] = await Promise.all([
-      db.getSets(), db.getSessions(), db.getSettings(), db.getListeningLessons(),
+    const [nextSets, nextSessions, nextSettings, nextListeningLessons, nextQuizSets] = await Promise.all([
+      db.getSets(), db.getSessions(), db.getSettings(), db.getListeningLessons(), db.getQuizSets(),
     ]);
     setsRef.current = nextSets;
     setSets(nextSets);
     setSessions(nextSessions.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)));
     listeningLessonsRef.current = nextListeningLessons;
     setListeningLessons(nextListeningLessons);
+    quizSetsRef.current = nextQuizSets;
+    setQuizSets(nextQuizSets);
     setSettings({ ...defaultSettings, ...nextSettings });
   }, []);
 
@@ -148,6 +155,28 @@ export default function App() {
     setListeningLessons(next);
     addToast('Đã xóa bài luyện nghe', '', 'info');
   }, [addToast]);
+
+  const saveQuizSet = useCallback(async (quizSet, notify = true) => {
+    const now = new Date().toISOString();
+    const normalized = { ...quizSet, updatedAt: now, createdAt: quizSet.createdAt || now };
+    await db.putQuizSet(normalized);
+    const exists = quizSetsRef.current.some((item) => item.id === normalized.id);
+    const next = exists
+      ? quizSetsRef.current.map((item) => item.id === normalized.id ? normalized : item)
+      : [normalized, ...quizSetsRef.current];
+    next.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    quizSetsRef.current = next;
+    setQuizSets(next);
+    if (notify) addToast(exists ? 'Đã lưu kết quả quiz' : 'Bộ câu hỏi đã sẵn sàng', normalized.title);
+    return normalized;
+  }, [addToast]);
+
+  const deleteQuizSet = useCallback(async (id) => {
+    await db.deleteQuizSet(id);
+    const next = quizSetsRef.current.filter((quizSet) => quizSet.id !== id);
+    quizSetsRef.current = next;
+    setQuizSets(next);
+  }, []);
 
   const addListeningWordsToSet = useCallback(async (items, lessonInfo = {}) => {
     const seen = new Set();
@@ -239,6 +268,7 @@ export default function App() {
   if (route.page === 'dashboard') page = <Dashboard sets={sets} sessions={sessions} settings={settings} navigate={navigate} />;
   if (route.page === 'library') page = <LibraryPage sets={sets} navigate={navigate} />;
   if (route.page === 'listening') page = <ListeningPage lessons={listeningLessons} settings={settings} saveLesson={saveListeningLesson} deleteLesson={deleteListeningLesson} addWordsToSet={addListeningWordsToSet} navigate={navigate} toast={addToast} />;
+  if (route.page === 'quiz') page = <QuizPage quizSets={quizSets} settings={settings} saveQuizSet={saveQuizSet} deleteQuizSet={deleteQuizSet} toast={addToast} />;
   if (route.page === 'import') page = <ImportPage settings={settings} saveSet={saveSet} navigate={navigate} toast={addToast} />;
   if (route.page === 'settings') page = <SettingsPage settings={settings} saveSettings={saveSettings} refreshData={refreshData} toast={addToast} />;
   if (route.page === 'set') page = <SetDetail set={selectedSet} saveSet={saveSet} deleteSet={deleteSet} navigate={navigate} />;

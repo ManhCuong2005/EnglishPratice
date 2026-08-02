@@ -37,7 +37,8 @@ export default function SettingsPage({ settings, saveSettings, refreshData, toas
       const backup = JSON.parse(await file.text());
       await db.importAll(backup, false);
       await refreshData();
-      toast('Đã khôi phục dữ liệu', `${backup.data.sets.length} bộ từ đã được nhập vào thiết bị.`);
+      const quizCount = backup.data.quizSets?.length || 0;
+      toast('Đã khôi phục dữ liệu', `${backup.data.sets.length} bộ từ và ${quizCount} bộ câu hỏi đã được nhập vào thiết bị.`);
     } catch (error) {
       toast('Không thể nhập bản sao lưu', error instanceof SyntaxError ? 'File JSON bị lỗi hoặc không hợp lệ.' : error.message, 'error', 7000);
     } finally {
@@ -53,7 +54,7 @@ export default function SettingsPage({ settings, saveSettings, refreshData, toas
       await db.clearAll();
       await db.putSetting('initialized', true);
       await refreshData();
-      toast('Đã xóa dữ liệu cục bộ', 'Tất cả bộ từ và tiến độ đã được xóa khỏi trình duyệt.', 'info');
+      toast('Đã xóa dữ liệu cục bộ', 'Tất cả bộ từ, bài nghe, bộ câu hỏi và tiến độ đã được xóa khỏi trình duyệt.', 'info');
     } catch (error) {
       toast('Không thể xóa dữ liệu', error.message, 'error');
     } finally { setBusy(false); }
@@ -87,7 +88,7 @@ export default function SettingsPage({ settings, saveSettings, refreshData, toas
           <section className="settings-section panel">
             <div className="settings-section__heading"><span><Database size={21} /></span><div><h2>Sao lưu và khôi phục</h2><p>Chuyển tiến độ giữa localhost, Vercel hoặc thiết bị khác.</p></div></div>
             <div className="backup-grid">
-              <button onClick={exportBackup} disabled={busy}><span><Download size={21} /></span><div><strong>Xuất dữ liệu</strong><p>Tải bộ từ, bài nghe, tiến độ và lịch sử thành một file JSON.</p></div></button>
+              <button onClick={exportBackup} disabled={busy}><span><Download size={21} /></span><div><strong>Xuất dữ liệu</strong><p>Tải bộ từ, bài nghe, bộ câu hỏi, tiến độ và lịch sử thành một file JSON.</p></div></button>
               <button onClick={() => backupRef.current?.click()} disabled={busy}><span><Upload size={21} /></span><div><strong>Nhập dữ liệu</strong><p>Khôi phục từ file Vocabloom JSON; bộ trùng sẽ được cập nhật.</p></div></button>
               <input type="file" accept="application/json,.json" hidden ref={backupRef} onChange={(event) => event.target.files[0] && importBackup(event.target.files[0])} />
             </div>
@@ -95,7 +96,7 @@ export default function SettingsPage({ settings, saveSettings, refreshData, toas
 
           <section className="settings-section settings-section--danger panel">
             <div className="settings-section__heading"><span><Trash2 size={21} /></span><div><h2>Vùng nguy hiểm</h2><p>Thao tác này không thể hoàn tác nếu chưa xuất bản sao lưu.</p></div></div>
-            <div className="danger-row"><div><strong>Xóa toàn bộ dữ liệu cục bộ</strong><p>Gỡ tất cả bộ từ, tiến độ, lịch sử và cấu hình khỏi trình duyệt này.</p></div><Button variant="danger" icon={Trash2} onClick={() => setClearOpen(true)} disabled={busy}>Xóa tất cả</Button></div>
+            <div className="danger-row"><div><strong>Xóa toàn bộ dữ liệu cục bộ</strong><p>Gỡ tất cả bộ từ, bài nghe, bộ câu hỏi, tiến độ, lịch sử và cấu hình khỏi trình duyệt này.</p></div><Button variant="danger" icon={Trash2} onClick={() => setClearOpen(true)} disabled={busy}>Xóa tất cả</Button></div>
           </section>
         </div>
 
@@ -104,7 +105,7 @@ export default function SettingsPage({ settings, saveSettings, refreshData, toas
         </aside>
       </div>
 
-      <ConfirmDialog open={clearOpen} onClose={() => setClearOpen(false)} onConfirm={clearAll} title="Xóa toàn bộ dữ liệu?" description="Tất cả bộ từ và tiến độ trên trình duyệt này sẽ bị xóa vĩnh viễn. Hãy xuất bản sao lưu trước nếu cần giữ lại." confirmLabel="Xóa vĩnh viễn" />
+      <ConfirmDialog open={clearOpen} onClose={() => setClearOpen(false)} onConfirm={clearAll} title="Xóa toàn bộ dữ liệu?" description="Tất cả bộ từ, bài nghe, bộ câu hỏi và tiến độ trên trình duyệt này sẽ bị xóa vĩnh viễn. Hãy xuất bản sao lưu trước nếu cần giữ lại." confirmLabel="Xóa vĩnh viễn" />
     </div>
   );
 }

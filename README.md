@@ -55,6 +55,15 @@ Bạn cũng có thể nhập key tại **Cài đặt → Kết nối Gemini**. K
 - Chấm đúng/sai, hiện transcript, nghe lại câu sai và chuyển từ nghe sai thành một bộ flashcard.
 - Bài nghe, lịch sử làm bài và điểm số được lưu trong IndexedDB và đi kèm file backup JSON.
 
+## Luyện trắc nghiệm
+
+- Dán nội dung hoặc tải file `.txt`, `.md`, `.csv`, `.tsv`, `.json` chứa câu hỏi trắc nghiệm.
+- Gemini nhận diện linh hoạt câu có 3 hoặc 4 phương án, đáp án đúng và lời giải chi tiết.
+- Màn hình kiểm duyệt cho phép sửa câu hỏi, thêm/xóa phương án, chọn lại đáp án đúng và chỉnh lời giải trước khi tạo.
+- Khi làm bài, người dùng kiểm tra đáp án ngay từng câu và xem lời giải ngay sau khi trả lời.
+- Kết quả được lưu theo từng lần làm; hỗ trợ làm lại toàn bộ hoặc chỉ làm lại các câu sai.
+- Bộ câu hỏi và lịch sử làm bài được lưu trong IndexedDB và được đưa vào file sao lưu JSON.
+
 ## IndexedDB và sao lưu
 
 Dữ liệu, gồm bộ từ và bài luyện nghe, được lưu riêng cho từng origin. Vì vậy `http://localhost:9999` và domain Vercel có hai kho khác nhau. Dùng **Cài đặt → Xuất dữ liệu** để tải file JSON, sau đó nhập file này trên domain hoặc thiết bị mới.
