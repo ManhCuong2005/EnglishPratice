@@ -153,15 +153,17 @@ function Typing({ words, onReview, onFinish }) {
   const inputRef = useRef(null);
   const word = questions[index];
 
-  const check = async () => {
+  const check = async (autoAdvance = false) => {
     if (!answer.trim() || checked !== null) return;
     const isCorrect = normalizeAnswer(answer) === normalizeAnswer(word.term);
     setChecked(isCorrect);
-    if (isCorrect) setCorrect((value) => value + 1);
+    const nextCorrect = correct + (isCorrect ? 1 : 0);
+    if (isCorrect) setCorrect(nextCorrect);
     await onReview(word.id, isCorrect ? 'good' : 'again');
+    if (isCorrect && autoAdvance) next(nextCorrect);
   };
-  const next = () => {
-    if (index >= questions.length - 1) onFinish(questions.length, correct);
+  const next = (nextCorrect = correct) => {
+    if (index >= questions.length - 1) onFinish(questions.length, nextCorrect);
     else { setIndex((value) => value + 1); setAnswer(''); setChecked(null); window.setTimeout(() => inputRef.current?.focus(), 50); }
   };
 
@@ -171,7 +173,7 @@ function Typing({ words, onReview, onFinish }) {
       <section className="typing-card">
         <span className="card-label">GÕ TỪ TIẾNG ANH</span><p>Nghĩa của từ là</p><h2>{word.meaning}</h2>
         {word.example && <blockquote>{word.example.replace(new RegExp(word.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig'), '_____')}</blockquote>}
-        <div className={`typing-input ${checked === true ? 'correct' : checked === false ? 'wrong' : ''}`}><input ref={inputRef} autoFocus value={answer} disabled={checked !== null} onChange={(event) => setAnswer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') checked === null ? check() : next(); }} placeholder="Nhập từ tiếng Anh…" autoComplete="off" spellCheck="false" />{checked === true && <Check />}{checked === false && <X />}</div>
+        <div className={`typing-input ${checked === true ? 'correct' : checked === false ? 'wrong' : ''}`}><input ref={inputRef} autoFocus value={answer} disabled={checked !== null} onChange={(event) => setAnswer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') checked === null ? check(true) : next(); }} placeholder="Nhập từ tiếng Anh…" autoComplete="off" spellCheck="false" />{checked === true && <Check />}{checked === false && <X />}</div>
         {checked === false && <p className="correct-answer">Đáp án đúng: <strong>{word.term}</strong> <button onClick={() => speakEnglish(word.term)}><Volume2 size={16} /></button></p>}
         <Button onClick={checked === null ? check : next} disabled={!answer.trim()}>{checked === null ? 'Kiểm tra' : index === questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'}</Button>
       </section>
