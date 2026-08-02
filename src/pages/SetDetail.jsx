@@ -58,6 +58,7 @@ export default function SetDetail({ set, saveSet, deleteSet, navigate }) {
     { id: 'flashcard', icon: Layers3, title: 'Flashcard', description: 'Lật thẻ và tự đánh giá', color: 'violet' },
     { id: 'quiz', icon: Gamepad2, title: 'Trắc nghiệm', description: 'Chọn nghĩa chính xác', color: 'green' },
     { id: 'typing', icon: Keyboard, title: 'Gõ đáp án', description: 'Nhớ chủ động từ vựng', color: 'orange' },
+    { id: 'meaning-listen', icon: Headphones, title: 'Nghe & viết nghĩa', description: 'Nghe rồi tự viết nghĩa', color: 'blue' },
     { id: 'matching', icon: Brain, title: 'Ghép cặp', description: 'Nối từ với đúng nghĩa', color: 'blue' },
   ];
 

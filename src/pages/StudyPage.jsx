@@ -1,14 +1,15 @@
 import {
-  ArrowLeft, ArrowRight, Brain, Check, CheckCircle2, Gamepad2, Headphones, Keyboard, Layers3, Lightbulb, RefreshCw, RotateCcw, Sparkles, Trophy, Volume2, X,
+  ArrowLeft, ArrowRight, Brain, Check, CheckCircle2, Gamepad2, Headphones, Keyboard, Languages, Layers3, Lightbulb, RefreshCw, RotateCcw, Sparkles, Trophy, Volume2, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ProgressBar } from '../components/Common.jsx';
-import { normalizeAnswer, REVIEW_RATINGS, shuffle, speakEnglish } from '../lib/learning.js';
+import { normalizeAnswer, REVIEW_RATINGS, shuffle, speakEnglish, speakText } from '../lib/learning.js';
 
 const modes = [
   { id: 'flashcard', label: 'Flashcard', icon: Layers3, description: 'Lật thẻ và tự đánh giá khả năng nhớ.' },
   { id: 'quiz', label: 'Trắc nghiệm', icon: Gamepad2, description: 'Chọn đúng nghĩa trong bốn đáp án.' },
   { id: 'typing', label: 'Gõ đáp án', icon: Keyboard, description: 'Nhìn nghĩa và chủ động nhớ từ tiếng Anh.' },
+  { id: 'meaning-listen', label: 'Nghe & viết nghĩa', icon: Headphones, description: 'Nghe từ rồi tự viết nghĩa theo hướng chọn.' },
   { id: 'matching', label: 'Ghép cặp', icon: Brain, description: 'Kết nối từ với nghĩa tương ứng.' },
 ];
 
@@ -178,6 +179,96 @@ function Typing({ words, onReview, onFinish }) {
   );
 }
 
+function meaningCandidates(value) {
+  return String(value || '')
+    .split(/[,;|/]/)
+    .map((part) => normalizeAnswer(part))
+    .filter(Boolean);
+}
+
+function matchesMeaning(answer, meaning) {
+  const normalized = normalizeAnswer(answer);
+  if (!normalized) return false;
+  return meaningCandidates(meaning).some((candidate) => candidate === normalized);
+}
+
+function MeaningListening({ words, onReview, onFinish, settings }) {
+  const [questions] = useState(() => shuffle(words).slice(0, 20));
+  const [direction, setDirection] = useState('en-to-vi');
+  const [index, setIndex] = useState(0);
+  const [answer, setAnswer] = useState('');
+  const [checked, setChecked] = useState(null);
+  const [correct, setCorrect] = useState(0);
+  const inputRef = useRef(null);
+  const word = questions[index];
+  const englishToVietnamese = direction === 'en-to-vi';
+  const promptText = englishToVietnamese ? 'Nhập nghĩa tiếng Việt' : 'Nhập từ tiếng Anh';
+  const spokenText = englishToVietnamese ? word.term : word.meaning;
+  const spokenLanguage = englishToVietnamese ? 'en-US' : 'vi-VN';
+
+  useEffect(() => {
+    if (!word || settings.soundEnabled === false) return undefined;
+    const timer = window.setTimeout(() => {
+      if (englishToVietnamese) speakEnglish(spokenText); else speakText(spokenText, spokenLanguage);
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [englishToVietnamese, index, settings.soundEnabled, spokenLanguage, spokenText, word]);
+
+  const playPrompt = () => {
+    if (englishToVietnamese) speakEnglish(spokenText); else speakText(spokenText, spokenLanguage);
+  };
+
+  const changeDirection = (nextDirection) => {
+    if (nextDirection === direction) return;
+    setDirection(nextDirection);
+    setIndex(0);
+    setAnswer('');
+    setChecked(null);
+    setCorrect(0);
+  };
+
+  const check = async () => {
+    if (!answer.trim() || checked !== null) return;
+    const isCorrect = englishToVietnamese
+      ? matchesMeaning(answer, word.meaning)
+      : normalizeAnswer(answer) === normalizeAnswer(word.term);
+    setChecked(isCorrect);
+    if (isCorrect) setCorrect((value) => value + 1);
+    await onReview(word.id, isCorrect ? 'good' : 'again');
+  };
+
+  const next = () => {
+    if (index >= questions.length - 1) onFinish(questions.length, correct);
+    else {
+      setIndex((value) => value + 1);
+      setAnswer('');
+      setChecked(null);
+      window.setTimeout(() => inputRef.current?.focus(), 60);
+    }
+  };
+
+  return (
+    <div className="meaning-listen-mode">
+      <div className="meaning-listen-direction" role="group" aria-label="Chọn hướng luyện nghe">
+        <button className={englishToVietnamese ? 'active' : ''} type="button" onClick={() => changeDirection('en-to-vi')}><Languages size={17} /><span><strong>Nghe tiếng Anh</strong><small>Viết nghĩa tiếng Việt</small></span></button>
+        <button className={!englishToVietnamese ? 'active' : ''} type="button" onClick={() => changeDirection('vi-to-en')}><Headphones size={17} /><span><strong>Nghe nghĩa Việt</strong><small>Viết từ tiếng Anh</small></span></button>
+      </div>
+      <div className="study-progress"><span>Câu {index + 1} / {questions.length}</span><ProgressBar value={index} max={questions.length} compact /><strong>{correct} đúng</strong></div>
+      <section className="meaning-listen-card">
+        <span className="card-label">{englishToVietnamese ? 'NGHE TỪ TIẾNG ANH' : 'NGHE NGHĨA TIẾNG VIỆT'}</span>
+        <button className="meaning-listen-speaker" type="button" onClick={playPrompt} aria-label="Nghe lại"><Volume2 size={25} /></button>
+        <div className="meaning-listen-wave" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+        <p>Hệ thống đã đọc. Hãy nghe và nhập câu trả lời của bạn.</p>
+        <h2>{promptText}</h2>
+        <div className={`meaning-listen-input ${checked === true ? 'correct' : checked === false ? 'wrong' : ''}`}><input ref={inputRef} autoFocus value={answer} disabled={checked !== null} onChange={(event) => setAnswer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') checked === null ? check() : next(); }} placeholder={englishToVietnamese ? 'Ví dụ: từ bỏ, ruồng bỏ' : 'Ví dụ: abandon'} autoComplete="off" spellCheck="false" />{checked === true && <Check />}{checked === false && <X />}</div>
+        {checked === false && <p className="meaning-listen-correct-answer">Đáp án đúng: <strong>{englishToVietnamese ? word.meaning : word.term}</strong><button type="button" onClick={playPrompt}><Volume2 size={17} /></button></p>}
+        {checked === true && <p className="meaning-listen-pass"><CheckCircle2 size={17} /> Chính xác — từ này đã được tính là pass.</p>}
+        <Button onClick={checked === null ? check : next} disabled={!answer.trim()}>{checked === null ? 'Kiểm tra' : index === questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'}</Button>
+      </section>
+    </div>
+  );
+}
+
 function Matching({ words, onReview, onFinish }) {
   const [batches] = useState(() => {
     const deck = shuffle(words);
@@ -268,6 +359,7 @@ export default function StudyPage({ set, initialMode, onReview, onComplete, sett
           {validMode === 'flashcard' && <Flashcards key={run} words={studyWords} onReview={review} onFinish={finish} settings={settings} />}
           {validMode === 'quiz' && <Quiz key={run} words={studyWords} onReview={review} onFinish={finish} />}
           {validMode === 'typing' && <Typing key={run} words={studyWords} onReview={review} onFinish={finish} />}
+          {validMode === 'meaning-listen' && <MeaningListening key={run} words={studyWords} onReview={review} onFinish={finish} settings={settings} />}
           {validMode === 'matching' && <Matching key={run} words={studyWords} onReview={review} onFinish={finish} />}
         </>
       )}

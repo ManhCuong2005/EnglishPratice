@@ -166,6 +166,34 @@ export function speakEnglish(text, rate = 0.96) {
   return true;
 }
 
+export function speakText(text, lang = 'vi-VN', rate = 0.96) {
+  if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
+  const synthesis = window.speechSynthesis;
+  const utterance = new SpeechSynthesisUtterance(String(text).trim());
+  utterance.lang = lang;
+  utterance.rate = rate;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  if (pendingSpeechTimer) {
+    window.clearTimeout(pendingSpeechTimer);
+    pendingSpeechTimer = null;
+  }
+
+  const play = () => {
+    if (synthesis.paused) synthesis.resume();
+    synthesis.speak(utterance);
+  };
+
+  if (synthesis.speaking || synthesis.pending) {
+    synthesis.cancel();
+    pendingSpeechTimer = window.setTimeout(play, 12);
+  } else {
+    play();
+  }
+  return true;
+}
+
 export function startOfDay(value = new Date()) {
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
