@@ -11,6 +11,7 @@ import StudyPage from './pages/StudyPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import { db } from './lib/db.js';
 import { getSetMetrics, reviewWord } from './lib/learning.js';
+import { generateEnglishDefinitions } from './lib/gemini.js';
 import { sampleSet } from './data/sample.js';
 
 const defaultSettings = {
@@ -235,6 +236,30 @@ export default function App() {
     await saveSet(updated, false);
   }, [saveSet]);
 
+  const enrichSetEnglishMeanings = useCallback(async (setId) => {
+    const currentSet = setsRef.current.find((item) => item.id === setId);
+    if (!currentSet) return null;
+    const missingWords = currentSet.words.filter((word) => !String(word.englishMeaning || '').trim());
+    if (!missingWords.length) return currentSet;
+    try {
+      const definitions = await generateEnglishDefinitions(missingWords, settings);
+      const byTerm = new Map(definitions.map((item) => [item.term, item.englishMeaning]));
+      const updated = {
+        ...currentSet,
+        words: currentSet.words.map((word) => ({
+          ...word,
+          englishMeaning: word.englishMeaning || byTerm.get(String(word.term || '').trim().toLocaleLowerCase('en')) || '',
+        })),
+      };
+      const saved = await saveSet(updated, false);
+      addToast('Đã bổ sung định nghĩa tiếng Anh', `${definitions.length} từ đã sẵn sàng để luyện.`);
+      return saved;
+    } catch (error) {
+      addToast('Chưa thể bổ sung định nghĩa', error.message, 'error');
+      throw error;
+    }
+  }, [addToast, saveSet, settings]);
+
   const completeSession = useCallback(async ({ setId, mode, answered, correct, durationSeconds }) => {
     const session = {
       id: crypto.randomUUID(), setId, mode, answered, correct, durationSeconds,
@@ -272,7 +297,7 @@ export default function App() {
   if (route.page === 'import') page = <ImportPage settings={settings} saveSet={saveSet} navigate={navigate} toast={addToast} />;
   if (route.page === 'settings') page = <SettingsPage settings={settings} saveSettings={saveSettings} refreshData={refreshData} toast={addToast} />;
   if (route.page === 'set') page = <SetDetail set={selectedSet} saveSet={saveSet} deleteSet={deleteSet} navigate={navigate} />;
-  if (route.page === 'study') page = <StudyPage set={selectedSet} initialMode={route.mode} onReview={review} onComplete={completeSession} settings={settings} navigate={navigate} />;
+  if (route.page === 'study') page = <StudyPage set={selectedSet} initialMode={route.mode} onReview={review} onComplete={completeSession} onEnrichEnglishMeanings={enrichSetEnglishMeanings} settings={settings} navigate={navigate} />;
 
   return (
     <>

@@ -41,7 +41,7 @@ Bạn cũng có thể nhập key tại **Cài đặt → Kết nối Gemini**. K
 - Flashcard với 4 mức tự đánh giá.
 - Trắc nghiệm chọn nghĩa.
 - Gõ lại từ tiếng Anh.
-- Nghe & viết nghĩa: tự phát âm từ hoặc nghĩa, chọn hướng Anh → Việt / Việt → Anh, chấm ngay và đưa câu sai vào lượt ôn lại.
+- Nghe & viết nghĩa: tự phát âm từ hoặc nghĩa, chọn hướng Anh → Việt / Anh → định nghĩa Anh / Việt → Anh, chấm ngay, có thể bỏ qua và đưa câu sai vào lượt ôn lại.
 - Ghép cặp Anh–Việt.
 - Ôn lặp lại ngắt quãng, tự tính ngày cần ôn và mức độ ghi nhớ.
 - Phát âm bằng Web Speech API của trình duyệt.

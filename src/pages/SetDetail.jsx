@@ -6,7 +6,7 @@ import { Button, ConfirmDialog, EmptyState, Modal, ProgressBar } from '../compon
 import { getSetMetrics, isDue, speakEnglish } from '../lib/learning.js';
 
 const partLabels = { noun: 'danh từ', verb: 'động từ', adjective: 'tính từ', adverb: 'trạng từ', phrase: 'cụm từ', other: 'khác' };
-const blankWord = () => ({ id: crypto.randomUUID(), term: '', meaning: '', pronunciation: '', partOfSpeech: 'other', example: '', exampleMeaning: '', level: 'A2', tags: [], note: '', needsReview: false });
+const blankWord = () => ({ id: crypto.randomUUID(), term: '', meaning: '', englishMeaning: '', pronunciation: '', partOfSpeech: 'other', example: '', exampleMeaning: '', level: 'A2', tags: [], note: '', needsReview: false });
 
 export default function SetDetail({ set, saveSet, deleteSet, navigate }) {
   const [query, setQuery] = useState('');
@@ -130,6 +130,7 @@ export default function SetDetail({ set, saveSet, deleteSet, navigate }) {
           <div className="word-form">
             <label><span>Tiếng Anh *</span><input autoFocus value={editingWord.term} onChange={(event) => setEditingWord({ ...editingWord, term: event.target.value })} /></label>
             <label><span>Nghĩa tiếng Việt *</span><input value={editingWord.meaning} onChange={(event) => setEditingWord({ ...editingWord, meaning: event.target.value })} /></label>
+            <label className="full"><span>Định nghĩa tiếng Anh <small>(dùng cho chế độ Nghe & viết nghĩa)</small></span><input value={editingWord.englishMeaning || ''} onChange={(event) => setEditingWord({ ...editingWord, englishMeaning: event.target.value })} placeholder="A simple English definition…" /></label>
             <label><span>Phiên âm IPA</span><input value={editingWord.pronunciation} onChange={(event) => setEditingWord({ ...editingWord, pronunciation: event.target.value })} placeholder="/ɪɡˈzɑːmpəl/" /></label>
             <label><span>Loại từ</span><select value={editingWord.partOfSpeech} onChange={(event) => setEditingWord({ ...editingWord, partOfSpeech: event.target.value })}>{Object.entries(partLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
             <label><span>Trình độ</span><select value={editingWord.level} onChange={(event) => setEditingWord({ ...editingWord, level: event.target.value })}>{['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => <option key={level}>{level}</option>)}</select></label>

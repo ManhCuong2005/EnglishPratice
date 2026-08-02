@@ -14,7 +14,7 @@ overcome | vượt qua khó khăn`;
 
 const emptyWord = () => ({
   id: crypto.randomUUID(), term: '', meaning: '', pronunciation: '', partOfSpeech: 'other',
-  example: '', exampleMeaning: '', level: 'A2', tags: [], note: '', needsReview: true,
+  englishMeaning: '', example: '', exampleMeaning: '', level: 'A2', tags: [], note: '', needsReview: true,
 });
 
 export default function ImportPage({ settings, saveSet, navigate, toast }) {
@@ -200,6 +200,7 @@ export default function ImportPage({ settings, saveSet, navigate, toast }) {
                 <div className="word-review-card__fields">
                   <label className="field-term"><span>Tiếng Anh *</span><input value={word.term} onChange={(event) => updateWord(word.id, 'term', event.target.value)} placeholder="English word" /></label>
                   <label className="field-meaning"><span>Nghĩa tiếng Việt *</span><input value={word.meaning} onChange={(event) => updateWord(word.id, 'meaning', event.target.value)} placeholder="Nghĩa tiếng Việt" /></label>
+                  <label><span>Định nghĩa tiếng Anh</span><input value={word.englishMeaning || ''} onChange={(event) => updateWord(word.id, 'englishMeaning', event.target.value)} placeholder="A simple English definition…" /></label>
                   <label><span>Phiên âm</span><input value={word.pronunciation} onChange={(event) => updateWord(word.id, 'pronunciation', event.target.value)} placeholder="/…/" /></label>
                   <label><span>Loại từ</span><select value={word.partOfSpeech} onChange={(event) => updateWord(word.id, 'partOfSpeech', event.target.value)}><option value="noun">Danh từ</option><option value="verb">Động từ</option><option value="adjective">Tính từ</option><option value="adverb">Trạng từ</option><option value="phrase">Cụm từ</option><option value="other">Khác</option></select></label>
                   <label><span>Trình độ</span><select value={word.level} onChange={(event) => updateWord(word.id, 'level', event.target.value)}>{['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => <option key={level}>{level}</option>)}</select></label>

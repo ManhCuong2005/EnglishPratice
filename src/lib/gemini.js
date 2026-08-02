@@ -13,6 +13,7 @@ const vocabularySchema = {
         properties: {
           term: { type: 'string', description: 'Từ hoặc cụm từ tiếng Anh chuẩn hóa.' },
           meaning: { type: 'string', description: 'Nghĩa tiếng Việt dựa trên dữ liệu nguồn.' },
+          englishMeaning: { type: 'string', description: 'Một định nghĩa ngắn, tự nhiên bằng tiếng Anh để người học có thể tự viết lại.' },
           pronunciation: { type: 'string', description: 'Phiên âm IPA, để trống nếu không chắc.' },
           partOfSpeech: { type: 'string', description: 'Loại từ viết tắt: noun, verb, adjective, adverb, phrase hoặc other.' },
           example: { type: 'string', description: 'Một câu ví dụ tiếng Anh tự nhiên, ngắn gọn.' },
@@ -22,7 +23,7 @@ const vocabularySchema = {
           note: { type: 'string', description: 'Ghi chú cách dùng quan trọng, có thể để trống.' },
           needsReview: { type: 'boolean', description: 'True nếu cặp từ-nghĩa trong nguồn mơ hồ hoặc thiếu dữ liệu.' },
         },
-        required: ['term', 'meaning', 'pronunciation', 'partOfSpeech', 'example', 'exampleMeaning', 'level', 'tags', 'note', 'needsReview'],
+        required: ['term', 'meaning', 'englishMeaning', 'pronunciation', 'partOfSpeech', 'example', 'exampleMeaning', 'level', 'tags', 'note', 'needsReview'],
       },
     },
   },
@@ -34,6 +35,7 @@ function cleanWord(word) {
     id: crypto.randomUUID(),
     term: String(word.term || '').trim(),
     meaning: String(word.meaning || '').trim(),
+    englishMeaning: String(word.englishMeaning || '').trim(),
     pronunciation: String(word.pronunciation || '').trim(),
     partOfSpeech: String(word.partOfSpeech || 'other').trim().toLowerCase(),
     example: String(word.example || '').trim(),
@@ -70,6 +72,7 @@ NHIỆM VỤ:
 - Ưu tiên tuyệt đối nghĩa tiếng Việt có sẵn trong nguồn. Không thay đổi ý nghĩa gốc.
 - Chuẩn hóa lỗi viết hoa và khoảng trắng; loại bỏ mục trùng lặp nhưng giữ nghĩa hữu ích.
 - Bổ sung phiên âm IPA, loại từ, trình độ CEFR và một câu ví dụ ngắn, tự nhiên.
+- Bổ sung englishMeaning: một định nghĩa tiếng Anh đơn giản, không dùng lại chính từ vựng làm đáp án. Nếu không đủ ngữ cảnh, để trống và đặt needsReview=true.
 - Nếu một mục thiếu nghĩa tiếng Việt, nghĩa mơ hồ hoặc không chắc chắn, vẫn xử lý nhưng đặt needsReview=true.
 - Không đưa câu giải thích ngoài cấu trúc JSON được yêu cầu.
 - Chỉ lấy các mục thật sự hữu ích để học, tối đa 100 mục.
@@ -170,4 +173,61 @@ export function parseLocally(sourceText) {
     throw new Error('Không nhận diện được dữ liệu. Mỗi dòng nên có dạng “english | nghĩa tiếng Việt”.');
   }
   return { title: 'Bộ từ nhập nhanh', description: 'Được tách trực tiếp từ dữ liệu thô.', words };
+}
+
+const englishDefinitionsSchema = {
+  type: 'object',
+  properties: {
+    definitions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          term: { type: 'string' },
+          englishMeaning: { type: 'string', description: 'Định nghĩa ngắn bằng tiếng Anh, không lặp lại chính từ.' },
+        },
+        required: ['term', 'englishMeaning'],
+      },
+    },
+  },
+  required: ['definitions'],
+};
+
+export async function generateEnglishDefinitions(words = [], runtimeSettings = {}) {
+  const sourceWords = words.filter((word) => word?.term && !String(word.englishMeaning || '').trim()).slice(0, 100);
+  if (!sourceWords.length) return [];
+  const { apiKey, model } = getGeminiConfig(runtimeSettings);
+  if (!apiKey) throw new Error('Chưa có Gemini API key. Hãy thêm key trong Cài đặt → Kết nối Gemini.');
+
+  const prompt = `Hãy viết định nghĩa tiếng Anh đơn giản, chính xác cho các từ dưới đây để người học có thể nghe từ và tự gõ lại định nghĩa.
+- Mỗi định nghĩa dài tối đa 18 từ, dùng tiếng Anh tự nhiên ở mức dễ hiểu.
+- Không lặp lại chính từ/cụm từ trong định nghĩa.
+- Dựa vào nghĩa tiếng Việt và câu ví dụ nếu có.
+- Trả đúng một mục cho mỗi từ, không thêm lời giải ngoài JSON.
+
+DỮ LIỆU:
+${JSON.stringify(sourceWords.map((word) => ({ term: word.term, meaning: word.meaning, example: word.example || '' })))} `;
+
+  let response;
+  try {
+    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: englishDefinitionsSchema },
+      }),
+    });
+  } catch (_error) {
+    throw new Error('Không thể kết nối Gemini. Hãy kiểm tra Internet và thử lại.');
+  }
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || `Gemini trả về lỗi ${response.status}.`);
+  const raw = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+  if (!raw) throw new Error('Gemini không trả về định nghĩa tiếng Anh.');
+  let parsed;
+  try { parsed = JSON.parse(raw.replace(/^```json\s*/i, '').replace(/\s*```$/i, '')); } catch (_error) { throw new Error('Gemini trả về dữ liệu không đúng định dạng.'); }
+  return (Array.isArray(parsed.definitions) ? parsed.definitions : [])
+    .map((item) => ({ term: String(item.term || '').trim().toLocaleLowerCase('en'), englishMeaning: String(item.englishMeaning || '').trim() }))
+    .filter((item) => item.term && item.englishMeaning);
 }
