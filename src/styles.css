@@ -489,3 +489,128 @@ input::placeholder, textarea::placeholder { color: var(--text-faint); }
 
 .round-complete { max-width: 760px; margin: 12px auto 0; padding: 11px 13px; display: flex; align-items: center; gap: 9px; border-radius: 12px; background: var(--green-soft); color: var(--green); }.round-complete span { flex: 1; font-size: 9px; font-weight: 700; }
 .study-result { max-width: 700px; min-height: 570px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }.result-celebration { position: relative; margin-bottom: 22px; }.result-celebration > span { width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; border-radius: 27px; background: linear-gradient(145deg, #fff3d7, #ffe0a0); color: #d88a20; box-shadow: 0 12px 30px rgba(216,138,32,.18); }.study-result h1 { margin: 9px 0 7px; font-size: 30px; letter-spacing: -1px; }.study-result > p { color: var(--text-soft); font-size: 10px; }.result-stats { width: 100%; margin: 25px 0; padding: 18px; display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }.result-stats div + div { border-left: 1px solid var(--border); }.result-stats strong, .result-stats span { display: block; }.result-stats strong { color: var(--primary); font-size: 25px; }.result-stats span { margin-top: 5px; color: var(--text-soft); font-size: 8px; }.result-actions { display: flex; gap: 9px; }
+
+/* Comfortable mobile type and touch targets */
+@media (max-width: 650px) {
+  body { font-size: 16px; }
+  .main-content { padding-bottom: 98px; }
+  .button { min-height: 46px; padding-right: 16px; padding-left: 16px; font-size: 14px; }
+  .button--sm { min-height: 42px; font-size: 13px; }
+  .button--lg { min-height: 50px; }
+  .icon-button { width: 44px; height: 44px; }
+  .back-button, .text-link { min-height: 40px; font-size: 13px; }
+  .page-header p, .empty-state p, .modal-description { font-size: 14px; }
+  .eyebrow { font-size: 11px; }
+  .section-heading h2, .panel-heading h2 { font-size: 20px; }
+  .search-box, .select-control { height: 46px; }
+  .search-box input, .select-control select, .raw-textarea,
+  .review-title-fields input, .word-review-card input, .word-review-card select,
+  .word-form input, .word-form select, .word-form textarea,
+  .info-form input, .info-form select, .info-form textarea,
+  .settings-fields input { font-size: 16px; }
+  .stat-card span, .progress-label, .goal-message p { font-size: 12px; }
+  .stat-card small, .recommended-card__content span, .recommended-card__content small { font-size: 11px; }
+  .recommended-card__content strong { font-size: 14px; }
+  .collection-card h3 { font-size: 17px; }
+  .collection-card p { height: auto; font-size: 14px; line-height: 1.55; }
+  .collection-card footer, .collection-card__top small, .library-count { font-size: 12px; }
+  .word-preview span { font-size: 11px; }
+  .field-label, .review-title-fields label span, .word-review-card__fields label span,
+  .word-form label span, .info-form label span, .settings-fields label > span { font-size: 12px; }
+  .drop-zone > strong { font-size: 14px; }
+  .drop-zone > p, .selected-file strong, .guide-card li { font-size: 13px; }
+  .drop-zone > small, .selected-file small, .textarea-footer, .api-card p,
+  .format-example code, .privacy-note p { font-size: 11px; }
+  .mobile-nav { height: 64px; }
+  .mobile-nav button { font-size: 12px; }
+  .mobile-nav button svg { width: 21px; height: 21px; }
+
+  .listening-eyebrow { font-size: 11px; }
+  .listening-hero__copy > p, .listening-section-intro p { font-size: 15px; line-height: 1.65; }
+  .listening-stat-grid small, .listening-result-stats small { font-size: 12px; }
+  .listening-tabs button { min-height: 44px; font-size: 13px; }
+  .listening-tabs button > span, .listening-chip { font-size: 11px; }
+  .listening-lesson-card h3 { font-size: 17px; }
+  .listening-lesson-card > p { min-height: 0; font-size: 14px; line-height: 1.55; }
+  .listening-lesson-card__meta { font-size: 12px; }
+  .listening-lesson-card__footer small { font-size: 11px; }
+  .listening-lesson-card__footer strong { font-size: 13px; }
+  .listening-icon-button { width: 42px; height: 42px; }
+  .listening-history-list > button { min-height: 76px; }
+  .listening-history-list__score { font-size: 12px; }
+  .listening-history-list strong { font-size: 14px; }
+  .listening-history-list small { font-size: 12px; }
+  .listening-back { min-height: 42px; font-size: 13px; }
+  .listening-stepper__item > span { width: 28px; height: 28px; font-size: 11px; }
+  .listening-section-intro h1 { font-size: 30px; line-height: 1.2; }
+  .listening-form-section__title > span { width: 34px; height: 34px; font-size: 12px; }
+  .listening-form-section__title h2 { font-size: 18px; }
+  .listening-form-section__title p { font-size: 13px; line-height: 1.5; }
+  .listening-choice { min-height: 86px; padding: 13px; grid-template-columns: 44px 1fr 24px; }
+  .listening-choice > span { width: 44px; height: 44px; }
+  .listening-choice strong { font-size: 16px; }
+  .listening-choice small { font-size: 13px; line-height: 1.5; }
+  .listening-choice > i { width: 24px; height: 24px; }
+  .listening-field > span, .listening-mini-label { font-size: 13px; }
+  .listening-field > small { font-size: 12px; }
+  .listening-field input, .listening-field select { min-height: 48px; }
+  .listening-exam-grid > button { min-height: 92px; padding: 14px; }
+  .listening-exam-grid strong, .listening-length-grid strong { font-size: 15px; }
+  .listening-exam-grid small, .listening-length-grid small { font-size: 12px; }
+  .listening-length-grid button { min-height: 70px; }
+  .listening-blank-control { padding: 16px; }
+  .listening-blank-control > div:first-child { font-size: 14px; }
+  .listening-blank-control input { min-height: 28px; }
+  .listening-blank-control__legend { font-size: 11px; }
+  .listening-summary-card h3 { font-size: 18px; }
+  .listening-summary-card li { padding: 11px 0; font-size: 13px; }
+  .listening-summary-card > p { font-size: 12px; }
+  .listening-review-editor__head strong, .listening-question-preview strong { font-size: 14px; }
+  .listening-review-editor__head small, .listening-question-preview small,
+  .listening-status-pill { font-size: 11px; }
+  .listening-question-preview p, .listening-review-metric span,
+  .listening-review-tips p { font-size: 13px; }
+
+  .listening-practice__header h1 { font-size: 29px; }
+  .listening-practice__header p { font-size: 14px; }
+  .listening-exit { min-height: 44px; padding: 0 14px; font-size: 13px; }
+  .listening-player { gap: 15px; }
+  .listening-player__art { width: 58px; height: 58px; }
+  .listening-player__now span { font-size: 10px; }
+  .listening-player__now strong { font-size: 16px; }
+  .listening-player__now small { font-size: 12px; }
+  .listening-player__controls > button { width: 46px; height: 46px; }
+  .listening-player__controls .listening-player__main { width: 58px; height: 58px; }
+  .listening-player__settings label { min-height: 46px; padding: 0 12px; }
+  .listening-player__settings label > span, .listening-player__settings select,
+  .listening-player__settings > span, .listening-player__warning { font-size: 13px; }
+  .listening-player__secondary .button { min-height: 46px; }
+  .listening-audio-first h2 { font-size: 21px; }
+  .listening-audio-first p { font-size: 14px; }
+  .listening-exercise-heading h2 { font-size: 18px; }
+  .listening-exercise-heading p, .listening-exercise-heading > strong { font-size: 13px; }
+  .listening-cloze-sentence { min-height: 74px; padding: 12px 10px; grid-template-columns: 44px 1fr; }
+  .listening-cloze-sentence > button { width: 44px; height: 44px; }
+  .listening-cloze-sentence > p { font-size: 16px; line-height: 2.9; }
+  .listening-inline-answer input { height: 42px; min-width: 96px; font-size: 16px; }
+  .listening-question h3 { font-size: 15px; line-height: 1.5; }
+  .listening-question h3 > span { width: 30px; height: 30px; font-size: 11px; }
+  .listening-question > div > button { min-height: 54px; padding: 10px 12px; }
+  .listening-question > div > button > i { width: 30px; height: 30px; font-size: 11px; }
+  .listening-question > div > button > span { font-size: 14px; }
+  .listening-submit-bar strong { font-size: 14px; }
+  .listening-submit-bar small { font-size: 12px; }
+  .listening-score-ring small, .listening-score-hero p { font-size: 13px; }
+  .listening-answer-review__heading > span { font-size: 11px; }
+  .listening-answer-review__sentences > article > button { width: 44px; height: 44px; }
+  .listening-answer-review__sentences p { font-size: 15px; line-height: 2.4; }
+  .listening-answer-review__sentences small { font-size: 12px; }
+  .listening-question-results strong { font-size: 14px; }
+  .listening-question-results p, .listening-question-results small,
+  .listening-question-results em { font-size: 12px; line-height: 1.55; }
+  .listening-missed-words h2 { font-size: 18px; }
+  .listening-missed-words p { font-size: 13px; }
+  .listening-missed-words__chips button { min-height: 42px; font-size: 13px; }
+  .listening-delete-dialog p { font-size: 14px; }
+  .round-complete span, .study-result > p, .result-stats span { font-size: 13px; }
+}
